@@ -1,5 +1,6 @@
 from transitions import Machine
 from pico2d import (
+    SDLK_a,
     SDLK_LEFT,
     SDLK_RIGHT,
     SDL_KEYDOWN,
@@ -17,10 +18,11 @@ class Boy:
         self.pressed_directions = set()
         self.idle_started_at = get_time()
         self.last_update_at = get_time()
+        self.autorun_started_at = get_time()
         self.image = load_image('animation_sheet.png')
         self.machine = Machine(
             model=self,
-            states=['IDLE', 'RUN', 'SLEEP'],
+            states=['IDLE', 'RUN', 'SLEEP', 'AUTORUN'],
             initial='IDLE',
             auto_transitions=False,
             transitions=[
@@ -28,6 +30,8 @@ class Boy:
                 ['wake', 'SLEEP', 'IDLE'],
                 ['run', 'IDLE', 'RUN'],
                 ['stop', 'RUN', 'IDLE'],
+                ['autorun', 'IDLE', 'AUTORUN'],
+                ['finish_autorun', 'AUTORUN', 'IDLE'],
             ],
         )
 
@@ -43,6 +47,12 @@ class Boy:
             self.frame = (self.frame + 1) % 8
             self.x += self.face_dir * 200 * delta_time
             self.x = max(50, min(750, self.x))
+        elif self.state == 'AUTORUN':
+            self.frame = (self.frame + 1) % 8
+            self.x += self.face_dir * 350 * delta_time
+            if get_time() - self.autorun_started_at >= 5:
+                self.finish_autorun()
+                self.idle_started_at = get_time()
 
     def update(self):
         if self.state == 'SLEEP' and event.type == SDL_KEYDOWN:
@@ -59,6 +69,9 @@ class Boy:
             self.face_dir = -1 if event.key == SDLK_LEFT else 1
             if self.state == 'IDLE':
                 self.run()
+        elif self.state == 'IDLE' and event.type == SDL_KEYDOWN and event.key == SDLK_a:
+            self.autorun_started_at = get_time()
+            self.autorun()
         elif event.type == SDL_KEYUP and event.key in (SDLK_LEFT, SDLK_RIGHT):
             self.pressed_directions.discard(event.key)
             if self.state == 'RUN' and not self.pressed_directions:
