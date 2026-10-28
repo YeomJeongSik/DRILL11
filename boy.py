@@ -1,5 +1,5 @@
 from transitions import Machine
-from pico2d import load_image
+from pico2d import get_time, load_image
 
 
 class Boy:
@@ -7,17 +7,21 @@ class Boy:
         self.x, self.y = 400, 90
         self.frame = 0
         self.face_dir = 1
+        self.idle_started_at = get_time()
         self.image = load_image('animation_sheet.png')
         self.machine = Machine(
             model=self,
-            states=['IDLE'],
+            states=['IDLE', 'SLEEP'],
             initial='IDLE',
             auto_transitions=False,
+            transitions=[['sleep', 'IDLE', 'SLEEP']],
         )
 
     def handle_event(self, event):
         if self.state == 'IDLE':
             self.frame = (self.frame + 1) % 8
+            if get_time() - self.idle_started_at >= 5:
+                self.sleep()
 
     def update(self):
         pass
