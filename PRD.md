@@ -273,3 +273,29 @@ py -3 -m py_compile boy.py main.py grass.py
 - `*.pyc`
 - IDE 임시 파일
 - 실행 중 생성되는 로그와 캐시
+
+## 12. Python 기능 커밋 기록
+
+기능 구현은 다음 순서로 Python 파일을 단계적으로 추가했다.
+
+| 단계 | 커밋 | 변경 파일 | 기술 내용 |
+|---|---|---|---|
+| 기반 | `635575f` | `boy.py`, `main.py`, `grass.py` | 기본 게임 객체와 게임 루프 구성 |
+| 1 | `75ed6ec` | `boy.py` | IDLE 상태 머신과 애니메이션 추가 |
+| 2 | `97ed09a` | `boy.py` | IDLE 5초 시간 제한과 SLEEP 전환 추가 |
+| 3 | `70ceef2` | `boy.py` | SLEEP 키 입력 복귀 추가 |
+| 4 | `a0bee40` | `boy.py` | 일반 RUN 이동과 방향키 전환 추가 |
+| 5 | `3204594` | `boy.py` | 동시 입력 추적과 화면 경계 추가 |
+| 6 | `71452d1` | `boy.py` | SLEEP 회전 출력 추가 |
+| 7 | `96e02d3` | `boy.py` | SLEEP 방향키 RUN 전환 추가 |
+| 8 | `f739173` | `boy.py` | AUTORUN 상태와 5초 제한 추가 |
+| 9 | `b2af8b0` | `boy.py` | AUTORUN 화면 끝 방향 전환 추가 |
+| 10 | `4403360` | `boy.py` | AUTORUN 방향키 취소 추가 |
+| 11 | `519259b` | `boy.py` | AUTORUN 애니메이션과 확대 출력 추가 |
+| 12 | `50e7d7a` | `boy.py` | 통합 입력과 SLEEP 위치 보정 |
+
+각 기능 커밋은 독립적인 기술 변경 단위로 작성했으며, 최종 상태에서 다음 검증을 수행한다.
+
+```text
+py -3 -m py_compile boy.py main.py grass.py
+```
