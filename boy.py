@@ -1,4 +1,5 @@
-from transitions import Machine
+from math import radians
+
 from pico2d import (
     SDLK_a,
     SDLK_LEFT,
@@ -8,12 +9,18 @@ from pico2d import (
     get_time,
     load_image,
 )
+from transitions import Machine
 
 
 class Boy:
+    SCREEN_WIDTH = 800
+    HALF_WIDTH = 50
     GRASS_Y = 30
     GRASS_HEIGHT = 60
     SPRITE_HALF_HEIGHT = 50
+    RUN_SPEED = 200
+    AUTORUN_SPEED = 350
+    AUTORUN_DURATION = 5
 
     def __init__(self):
         self.x, self.y = 400, 90
@@ -40,54 +47,55 @@ class Boy:
             ],
         )
 
-    def handle_event(self, event):
+    def update(self):
         current_time = get_time()
         delta_time = current_time - self.last_update_at
         self.last_update_at = current_time
+
         if self.state == 'IDLE':
             self.frame = (self.frame + 1) % 8
             if current_time - self.idle_started_at >= 5:
                 self.sleep()
         elif self.state == 'RUN':
             self.frame = (self.frame + 1) % 8
-            self.x += self.face_dir * 200 * delta_time
-            self.x = max(50, min(750, self.x))
+            self.x += self.face_dir * self.RUN_SPEED * delta_time
+            self.x = max(self.HALF_WIDTH, min(self.SCREEN_WIDTH - self.HALF_WIDTH, self.x))
         elif self.state == 'AUTORUN':
             self.frame = (self.frame + 1) % 8
-            self.x += self.face_dir * 350 * delta_time
-            if self.x >= 750:
-                self.x = 750
+            self.x += self.face_dir * self.AUTORUN_SPEED * delta_time
+            if self.x >= self.SCREEN_WIDTH - self.HALF_WIDTH:
+                self.x = self.SCREEN_WIDTH - self.HALF_WIDTH
                 self.face_dir = -1
-            elif self.x <= 50:
-                self.x = 50
+            elif self.x <= self.HALF_WIDTH:
+                self.x = self.HALF_WIDTH
                 self.face_dir = 1
-            if get_time() - self.autorun_started_at >= 5:
+            if current_time - self.autorun_started_at >= self.AUTORUN_DURATION:
                 self.finish_autorun()
-                self.idle_started_at = get_time()
+                self.idle_started_at = current_time
 
-    def update(self):
-        if self.state == 'SLEEP' and event.type == SDL_KEYDOWN:
-            if event.key in (SDLK_LEFT, SDLK_RIGHT):
-                self.pressed_directions.add(event.key)
-                self.face_dir = -1 if event.key == SDLK_LEFT else 1
-                self.wake()
-                self.run()
-            else:
-                self.wake()
-            self.idle_started_at = get_time()
-        elif event.type == SDL_KEYDOWN and event.key in (SDLK_LEFT, SDLK_RIGHT):
-            self.pressed_directions.add(event.key)
-            self.face_dir = -1 if event.key == SDLK_LEFT else 1
-            if self.state == 'IDLE':
-                self.run()
-        elif self.state == 'IDLE' and event.type == SDL_KEYDOWN and event.key == SDLK_a:
-            self.autorun_started_at = get_time()
-            self.autorun()
-        elif self.state == 'AUTORUN' and event.type == SDL_KEYDOWN:
-            if event.key in (SDLK_LEFT, SDLK_RIGHT):
+    def handle_event(self, event):
+        if event.type == SDL_KEYDOWN:
+            if self.state == 'SLEEP':
+                if event.key in (SDLK_LEFT, SDLK_RIGHT):
+                    self.pressed_directions.add(event.key)
+                    self.face_dir = -1 if event.key == SDLK_LEFT else 1
+                    self.wake()
+                    self.run()
+                else:
+                    self.wake()
+                self.idle_started_at = get_time()
+            elif self.state == 'IDLE' and event.key == SDLK_a:
+                self.autorun_started_at = get_time()
+                self.autorun()
+            elif self.state == 'AUTORUN' and event.key in (SDLK_LEFT, SDLK_RIGHT):
                 self.pressed_directions.add(event.key)
                 self.face_dir = -1 if event.key == SDLK_LEFT else 1
                 self.cancel_autorun()
+            elif event.key in (SDLK_LEFT, SDLK_RIGHT):
+                self.pressed_directions.add(event.key)
+                self.face_dir = -1 if event.key == SDLK_LEFT else 1
+                if self.state == 'IDLE':
+                    self.run()
         elif event.type == SDL_KEYUP and event.key in (SDLK_LEFT, SDLK_RIGHT):
             self.pressed_directions.discard(event.key)
             if self.state == 'RUN':
@@ -99,9 +107,16 @@ class Boy:
                     self.idle_started_at = get_time()
 
     def draw(self):
-        source_y = 100 if self.state in ('RUN', 'AUTORUN') and self.face_dir == 1 else 0
-        if self.state not in ('RUN', 'AUTORUN'):
+        draw_y = (
+            (self.GRASS_Y + self.GRASS_HEIGHT / 2 + self.SPRITE_HALF_HEIGHT) / 2
+            if self.state == 'SLEEP'
+            else self.y
+        )
+        if self.state in ('RUN', 'AUTORUN'):
+            source_y = 100 if self.face_dir == 1 else 0
+        else:
             source_y = 300 if self.face_dir == 1 else 200
+
         if self.state == 'SLEEP':
             self.image.clip_composite_draw(
                 self.frame * 100,
@@ -111,7 +126,7 @@ class Boy:
                 radians(90 if self.face_dir == 1 else -90),
                 '',
                 self.x,
-                (self.GRASS_Y + self.GRASS_HEIGHT / 2 + self.SPRITE_HALF_HEIGHT) / 2,
+                draw_y,
                 100,
                 100,
             )
@@ -123,8 +138,7 @@ class Boy:
                 100,
                 100,
                 self.x,
-                self.y,
+                draw_y,
                 draw_size,
                 draw_size,
             )
-from math import radians
