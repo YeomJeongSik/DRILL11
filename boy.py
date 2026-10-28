@@ -1,5 +1,5 @@
 from transitions import Machine
-from pico2d import get_time, load_image
+from pico2d import SDL_KEYDOWN, get_time, load_image
 
 
 class Boy:
@@ -14,7 +14,10 @@ class Boy:
             states=['IDLE', 'SLEEP'],
             initial='IDLE',
             auto_transitions=False,
-            transitions=[['sleep', 'IDLE', 'SLEEP']],
+            transitions=[
+                ['sleep', 'IDLE', 'SLEEP'],
+                ['wake', 'SLEEP', 'IDLE'],
+            ],
         )
 
     def handle_event(self, event):
@@ -24,7 +27,9 @@ class Boy:
                 self.sleep()
 
     def update(self):
-        pass
+        if self.state == 'SLEEP' and event.type == SDL_KEYDOWN:
+            self.wake()
+            self.idle_started_at = get_time()
 
     def draw(self):
         source_y = 300 if self.face_dir == 1 else 200
