@@ -32,6 +32,7 @@ class Boy:
                 ['stop', 'RUN', 'IDLE'],
                 ['autorun', 'IDLE', 'AUTORUN'],
                 ['finish_autorun', 'AUTORUN', 'IDLE'],
+                ['cancel_autorun', 'AUTORUN', 'RUN'],
             ],
         )
 
@@ -78,6 +79,11 @@ class Boy:
         elif self.state == 'IDLE' and event.type == SDL_KEYDOWN and event.key == SDLK_a:
             self.autorun_started_at = get_time()
             self.autorun()
+        elif self.state == 'AUTORUN' and event.type == SDL_KEYDOWN:
+            if event.key in (SDLK_LEFT, SDLK_RIGHT):
+                self.pressed_directions.add(event.key)
+                self.face_dir = -1 if event.key == SDLK_LEFT else 1
+                self.cancel_autorun()
         elif event.type == SDL_KEYUP and event.key in (SDLK_LEFT, SDLK_RIGHT):
             self.pressed_directions.discard(event.key)
             if self.state == 'RUN' and not self.pressed_directions:
