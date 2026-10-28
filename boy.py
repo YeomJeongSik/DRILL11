@@ -46,7 +46,13 @@ class Boy:
 
     def update(self):
         if self.state == 'SLEEP' and event.type == SDL_KEYDOWN:
-            self.wake()
+            if event.key in (SDLK_LEFT, SDLK_RIGHT):
+                self.pressed_directions.add(event.key)
+                self.face_dir = -1 if event.key == SDLK_LEFT else 1
+                self.wake()
+                self.run()
+            else:
+                self.wake()
             self.idle_started_at = get_time()
         elif event.type == SDL_KEYDOWN and event.key in (SDLK_LEFT, SDLK_RIGHT):
             self.pressed_directions.add(event.key)
