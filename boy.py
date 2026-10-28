@@ -91,7 +91,9 @@ class Boy:
                 self.idle_started_at = get_time()
 
     def draw(self):
-        source_y = 300 if self.face_dir == 1 else 200
+        source_y = 100 if self.state in ('RUN', 'AUTORUN') and self.face_dir == 1 else 0
+        if self.state not in ('RUN', 'AUTORUN'):
+            source_y = 300 if self.face_dir == 1 else 200
         if self.state == 'SLEEP':
             self.image.clip_composite_draw(
                 self.frame * 100,
@@ -106,5 +108,15 @@ class Boy:
                 100,
             )
         else:
-            self.image.clip_draw(self.frame * 100, source_y, 100, 100, self.x, self.y)
+            draw_size = 150 if self.state == 'AUTORUN' else 100
+            self.image.clip_draw(
+                self.frame * 100,
+                source_y,
+                100,
+                100,
+                self.x,
+                self.y,
+                draw_size,
+                draw_size,
+            )
 from math import radians
