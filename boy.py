@@ -11,6 +11,10 @@ from pico2d import (
 
 
 class Boy:
+    GRASS_Y = 30
+    GRASS_HEIGHT = 60
+    SPRITE_HALF_HEIGHT = 50
+
     def __init__(self):
         self.x, self.y = 400, 90
         self.frame = 0
@@ -86,9 +90,13 @@ class Boy:
                 self.cancel_autorun()
         elif event.type == SDL_KEYUP and event.key in (SDLK_LEFT, SDLK_RIGHT):
             self.pressed_directions.discard(event.key)
-            if self.state == 'RUN' and not self.pressed_directions:
-                self.stop()
-                self.idle_started_at = get_time()
+            if self.state == 'RUN':
+                if self.pressed_directions:
+                    remaining_key = next(iter(self.pressed_directions))
+                    self.face_dir = -1 if remaining_key == SDLK_LEFT else 1
+                else:
+                    self.stop()
+                    self.idle_started_at = get_time()
 
     def draw(self):
         source_y = 100 if self.state in ('RUN', 'AUTORUN') and self.face_dir == 1 else 0
@@ -103,7 +111,7 @@ class Boy:
                 radians(90 if self.face_dir == 1 else -90),
                 '',
                 self.x,
-                110,
+                (self.GRASS_Y + self.GRASS_HEIGHT / 2 + self.SPRITE_HALF_HEIGHT) / 2,
                 100,
                 100,
             )
