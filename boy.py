@@ -50,6 +50,12 @@ class Boy:
         elif self.state == 'AUTORUN':
             self.frame = (self.frame + 1) % 8
             self.x += self.face_dir * 350 * delta_time
+            if self.x >= 750:
+                self.x = 750
+                self.face_dir = -1
+            elif self.x <= 50:
+                self.x = 50
+                self.face_dir = 1
             if get_time() - self.autorun_started_at >= 5:
                 self.finish_autorun()
                 self.idle_started_at = get_time()
