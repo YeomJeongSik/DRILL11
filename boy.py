@@ -14,6 +14,7 @@ class Boy:
         self.x, self.y = 400, 90
         self.frame = 0
         self.face_dir = 1
+        self.pressed_directions = set()
         self.idle_started_at = get_time()
         self.last_update_at = get_time()
         self.image = load_image('animation_sheet.png')
@@ -41,17 +42,20 @@ class Boy:
         elif self.state == 'RUN':
             self.frame = (self.frame + 1) % 8
             self.x += self.face_dir * 200 * delta_time
+            self.x = max(50, min(750, self.x))
 
     def update(self):
         if self.state == 'SLEEP' and event.type == SDL_KEYDOWN:
             self.wake()
             self.idle_started_at = get_time()
         elif event.type == SDL_KEYDOWN and event.key in (SDLK_LEFT, SDLK_RIGHT):
+            self.pressed_directions.add(event.key)
             self.face_dir = -1 if event.key == SDLK_LEFT else 1
             if self.state == 'IDLE':
                 self.run()
         elif event.type == SDL_KEYUP and event.key in (SDLK_LEFT, SDLK_RIGHT):
-            if self.state == 'RUN':
+            self.pressed_directions.discard(event.key)
+            if self.state == 'RUN' and not self.pressed_directions:
                 self.stop()
                 self.idle_started_at = get_time()
 
