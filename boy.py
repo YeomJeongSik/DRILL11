@@ -61,4 +61,19 @@ class Boy:
 
     def draw(self):
         source_y = 300 if self.face_dir == 1 else 200
-        self.image.clip_draw(self.frame * 100, source_y, 100, 100, self.x, self.y)
+        if self.state == 'SLEEP':
+            self.image.clip_composite_draw(
+                self.frame * 100,
+                source_y,
+                100,
+                100,
+                radians(90 if self.face_dir == 1 else -90),
+                '',
+                self.x,
+                110,
+                100,
+                100,
+            )
+        else:
+            self.image.clip_draw(self.frame * 100, source_y, 100, 100, self.x, self.y)
+from math import radians
